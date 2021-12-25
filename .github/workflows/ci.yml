@@ -9,8 +9,8 @@ jobs:
       - name: Install composer dependencies
         run: composer install --no-interaction --no-ansi --no-progress
       - name: Run PHPUnit
-        run: XDEBUG_MODE=coverage ./vendor/bin/phpunit
+        run: XDEBUG_MODE=coverage php74 ./vendor/bin/phpunit;
       - name: Run PHPStan
-        run: php -d memory_limit=4G ./vendor/bin/phpstan analyse src --no-progress
+        run: XDEBUG_MODE=off php74 -d memory_limit=4G ./vendor/bin/phpstan analyse src --no-progress;
       - name: Run phppcs
-        run: php -d memory_limit=4G ./vendor/bin/phpcs
+        run: XDEBUG_MODE=off php74 -d memory_limit=4G ./vendor/bin/phpcs;

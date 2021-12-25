@@ -14,9 +14,17 @@
             "BuzzingPixel\\Container\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "BuzzingPixel\\Test\\": "test/"
+        }
+    },
     "config": {
         "bin-compat": "full",
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     },
     "require": {
         "php": "^7.4|^8.0",
