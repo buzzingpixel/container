@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BuzzingPixel\Container;
 
+use BuzzingPixel\Container\Cache\CacheAdapterContract;
+use BuzzingPixel\Container\Cache\NoOpCacheAdapter;
 use LogicException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
@@ -16,6 +18,7 @@ use Throwable;
 
 use function array_filter;
 use function array_map;
+use function array_merge;
 use function array_values;
 use function array_walk;
 use function class_exists;
@@ -51,6 +54,8 @@ class Container implements ContainerInterface
      */
     private array $runTimeCache = [];
 
+    private CacheAdapterContract $cacheAdapter;
+
     /**
      * Provide any bindings. The key is the ID of the binding (usually a
      * class name). The value has three possible types:
@@ -68,13 +73,23 @@ class Container implements ContainerInterface
      */
     public function __construct(
         array $bindings = [],
-        array $constructorParamConfigs = []
+        array $constructorParamConfigs = [],
+        ?CacheAdapterContract $cacheAdapter = null
     ) {
+        if ($cacheAdapter === null) {
+            $cacheAdapter = new NoOpCacheAdapter();
+        }
+
         // Bind this container implementation to its class name
         $bindings[self::class] = $this;
 
         // Bind the container interface to this class name
         $bindings[ContainerInterface::class] = self::class;
+
+        $bindings = array_merge(
+            $bindings,
+            $cacheAdapter->getCachedBindings(),
+        );
 
         // Walk through our bindings to make sure they're what we expect
         array_walk(
@@ -107,6 +122,8 @@ class Container implements ContainerInterface
                 $this->constructorParamConfigs[] = $config;
             }
         );
+
+        $this->cacheAdapter = $cacheAdapter;
     }
 
     /**
@@ -195,6 +212,11 @@ class Container implements ContainerInterface
 
         // Get an array of the dependencies from the reflection
         $dependencies = $this->buildDependencies($ref, $id);
+
+        $this->cacheAdapter->cacheInstanceBinding(
+            $id,
+            $dependencies,
+        );
 
         // Create a new instance from those dependencies
         return $ref->newInstanceArgs($dependencies);

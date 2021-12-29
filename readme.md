@@ -68,3 +68,21 @@ $container = new \BuzzingPixel\Container\Container(
     ],
 );
 ```
+
+## Caching
+
+The container is pretty efficient, and for many applications, you may not need caching. However, if you're looking to eek out a little more performance in production, you can provide a cache implementation as the third argument in the constructor of the container. You _could_ write your own, or you can use the file cache implementation bundled with this package.
+
+The cache is invoked for any auto-wired class so that after it's been auto-wired, a factory is written to the cache file and loaded into the bindings of the container on next request so that reflection is not used for this class on future requests.
+
+Example:
+
+```php
+$container = new \BuzzingPixel\Container\Container(
+    cacheAdapter: new \BuzzingPixel\Container\Cache\FileCache\FileCache(
+        cacheFileHandler: new \BuzzingPixel\Container\Cache\FileCache\CacheFileHandler(
+            cacheDirectoryPath: '/path/to/desired/cache/directory',
+        ),
+    ),
+);
+```
