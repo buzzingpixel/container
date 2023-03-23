@@ -23,6 +23,7 @@ use function array_values;
 use function array_walk;
 use function class_exists;
 use function gettype;
+use function implode;
 use function in_array;
 use function interface_exists;
 use function is_callable;
@@ -298,8 +299,12 @@ class Container implements ContainerInterface
             }
 
             throw new RuntimeException(
-                'Cannot infer type of param ' . $param->getName() .
-                    ' for ' . $id,
+                implode(' ', [
+                    'Cannot infer type of param',
+                    $param->getName(),
+                    'for',
+                    $id,
+                ]),
             );
         }
 
@@ -323,12 +328,26 @@ class Container implements ContainerInterface
             return null;
         }
 
-        // And finally, it has come to this. We can't build the dependency
-        throw new RuntimeException(
+        /**
+         * This will fail (given that `has` returned false, but we want whatever
+         * exception is ultimately being thrown
+         */
+        try {
             /** @phpstan-ignore-next-line */
-            'Could not build dependency ' . $type->getName() .
-                ' for ' . $id
-        );
+            return $this->get($type->getName());
+        } catch (Throwable $e) {
+            throw new RuntimeException(
+                implode(' ', [
+                    'Could not build dependency',
+                    /** @phpstan-ignore-next-line */
+                    $type->getName(),
+                    'for',
+                    $id,
+                ]),
+                0,
+                $e
+            );
+        }
     }
 
     /**
